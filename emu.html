@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Emulator</title>
+    <style>
+        p{
+            line-height: 0px;
+            font-size:20px;
+        }
+        div.main{
+            display:grid;
+
+            grid-template-columns: 200px lfr;
+            grid-template-rows: 100px minmax(300px,max-content) 100px;
+            
+        }
+        div.header{
+            background:skyblue;
+            grid-column:1 / 3;
+            grid-row:1;
+        }
+        div.left{
+            background:pink;
+            grid-column:1;
+            grid-row:2;
+        }
+        div.right{
+            grid-column:2;
+            grid-row:2;
+            border:1px black solid;
+        }
+        textarea{
+            width:90%;
+            resize:vertical;
+            height:50px;
+        }
+        h2{
+            margin:0px;
+        }
+        div.files{
+            display:inline-block;
+            border:1px black solid;
+            background:white;
+            padding:6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="header">
+            <button onclick="run()"><p>実行</p></button>
+            <div class="files">
+                <span>ローカル保存操作</span>
+                <button onclick="save()">保存</button>
+                <button onclick="load()">読込</button>
+                <button onclick="list()">データリスト</button>
+                <button onclick="del()">削除</button>
+            </div>
+            <button onclick="out()"><p>これをダウンロード</p></button>
+        </div>
+        <div class="left">
+            <h2>HTML</h2>
+            <textarea id="html" onchange="run()"></textarea>
+            <h2>CSS</h2>
+            <textarea id="css" onchange="run()"></textarea>
+            <h2>Javascript</h2>
+            <textarea id="js" onchange="run()"></textarea>
+            <h2>Head</h2>
+            <textarea id="head" onchange="run()"></textarea>
+        </div>
+        <div class="right">
+            <iframe id="field" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+    </div>
+    <a style="display:none" id="down"></a>
+    <script>
+        let field = document.querySelector("iframe#field");
+        let html = document.querySelector("textarea#html");
+        let head = document.querySelector("textarea#head");
+        let css = document.querySelector("textarea#css");
+        let js = document.querySelector("textarea#js");
+        function run(){
+            field.setAttribute("srcdoc", gen());
+        }
+        function save(){
+            let name = prompt("ファイル名を入力");
+            if(localStorage.getItem(name)){
+                if(!confirm("データを上書きしますか")){
+                    return;
+                }
+            }
+            localStorage.setItem(name,JSON.stringify({
+                     html:html.value,
+                     head:head.value,
+                     css:css.value,
+                     js:js.value}));
+        }
+        function load(){
+            let name = prompt("ファイル名を入力");
+            let lsgi = JSON.parse(localStorage.getItem(name));
+            if(!lsgi){
+                alert("データがありません。");
+                return;
+            }
+            html.value = lsgi.html;
+            css.value = lsgi.css;
+            head.value = lsgi.head;
+            js.value = lsgi.js;
+        }
+        function list(){
+            let s = "";
+            for (let i = 0; i < localStorage.length; i++) {
+                s += localStorage.key(i)+ "\n";       
+            }
+            alert(s);
+        }
+        function del(){
+            let name = prompt("ファイル名を入力");
+            localStorage.removeItem(name);
+        }
+        function out(){
+            let a = document.querySelector("a#down");
+            a.href = URL.createObjectURL(new Blob([gen()],{type:'text/html'}));
+            a.download = 'document.html';
+            a.click();
+        }
+        function gen(){
+            let fd = "<!doctype html><html><head>";
+            fd += head.value;
+            fd += "<style>";
+            fd += css.value;
+            fd += "</style></head><body>";
+            fd += html.value;
+            fd += "<script>";
+            fd += js.value;
+            fd += "</sc" + "ript></body></html>";
+            return fd;
+        }
+    </script>
+</body>
+</html>
